@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Audio Splitter Ultra Pro v2.0</title>
+    <title>AI Audio Splitter Ultra Pro v3.0</title>
     <style>
         /* -------------------------------------------------------------------------- */
         /* 1. CSS VARIABLES & THEME SETUP                                             */
@@ -16,9 +16,6 @@
             
             --glow-cyan: #00f2fe;
             --glow-blue: #4facfe;
-            --glow-vocals: #ff4757;
-            --glow-music: #2ed573;
-            
             --text-primary: #f8fafc;
             --text-secondary: #cbd5e1;
             --text-muted: #64748b;
@@ -45,7 +42,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 40px 20px;
+            padding: 20px;
             overflow-x: hidden;
         }
 
@@ -57,34 +54,34 @@
             backdrop-filter: blur(30px);
             -webkit-backdrop-filter: blur(30px);
             width: 100%;
-            max-width: 650px;
+            max-width: 750px;
             border-radius: 32px;
             border: 1px solid var(--panel-border);
             box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7),
                         0 0 60px rgba(0, 242, 254, 0.02);
-            padding: 50px 40px;
+            padding: 40px;
             position: relative;
             transition: var(--transition-smooth);
         }
 
         .app-header {
-            margin-bottom: 40px;
+            margin-bottom: 35px;
             text-align: center;
         }
 
         .app-title {
-            font-size: 36px;
+            font-size: 34px;
             font-weight: 900;
             letter-spacing: -0.75px;
             background: linear-gradient(to right, var(--glow-cyan), var(--glow-blue));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
 
         .app-desc {
             color: var(--text-secondary);
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 400;
             letter-spacing: 0.25px;
         }
@@ -106,203 +103,70 @@
         }
 
         /* -------------------------------------------------------------------------- */
-        /* 5. PAGE 1: ADVANCED AUDIO DROP ZONE BOX                                    */
+        /* 5. PAGE 1: DYNAMIC PREMIUM UPLOAD TRIGGER BUTTON                          */
         /* -------------------------------------------------------------------------- */
-        .dropzone-box {
-            border: 2px dashed rgba(0, 242, 254, 0.25);
-            background: rgba(0, 242, 254, 0.01);
-            border-radius: 24px;
-            padding: 60px 30px;
-            cursor: pointer;
-            position: relative;
-            transition: var(--transition-smooth);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .dropzone-box:hover {
-            border-color: var(--glow-cyan);
-            background: rgba(0, 242, 254, 0.04);
-            box-shadow: 0 0 30px rgba(0, 242, 254, 0.12);
-            transform: scale(1.01);
-        }
-
-        .dz-icon-container {
-            width: 90px;
-            height: 90px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 25px;
-            font-size: 38px;
-            transition: var(--transition-smooth);
-            animation: bounceFloat 4s infinite ease-in-out;
-        }
-
-        @keyframes bounceFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .dropzone-box:hover .dz-icon-container {
-            background: rgba(0, 242, 254, 0.1);
-            border-color: var(--glow-cyan);
-            color: var(--glow-cyan);
-        }
-
-        .dz-prompt-text {
-            font-size: 19px;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 8px;
-        }
-
-        .dz-sub-text {
-            font-size: 13px;
-            color: var(--text-muted);
-            letter-spacing: 0.5px;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        /* -------------------------------------------------------------------------- */
-        /* 6. SYSTEM RUNNING LOADER STATE                                             */
-        /* -------------------------------------------------------------------------- */
-        .loader-wrapper {
+        .upload-section-box {
             padding: 40px 10px;
             text-align: center;
         }
 
-        .loader-status-msg {
-            font-size: 16px;
-            font-weight: 600;
-            color: #f1c40f;
-            margin-bottom: 25px;
-            letter-spacing: 0.5px;
-        }
-
-        .bar-container {
-            height: 6px;
-            width: 100%;
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 20px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .bar-container::after {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 45%;
-            background: linear-gradient(to right, transparent, var(--glow-cyan), transparent);
-            animation: lineDrive 1.6s infinite linear;
-        }
-
-        @keyframes lineDrive {
-            0% { left: -45%; }
-            100% { left: 100%; }
-        }
-
-        /* -------------------------------------------------------------------------- */
-        /* 7. PAGE 2: TRIPLE TRACK CHANNELS VIEW                                      */
-        /* -------------------------------------------------------------------------- */
-        .results-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .audio-card-panel {
-            background: rgba(255, 255, 255, 0.01);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            border-radius: 20px;
-            padding: 24px;
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
-            transition: var(--transition-smooth);
-        }
-
-        .audio-card-panel:hover {
-            border-color: rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.02);
-        }
-
-        .panel-heading {
-            display: flex;
-            align-items: center;
-            font-size: 13px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 16px;
-        }
-
-        .panel-heading span {
-            margin-right: 10px;
-            font-size: 18px;
-        }
-
-        .panel-original .panel-heading { color: var(--glow-blue); }
-        .panel-vocals .panel-heading { color: var(--glow-vocals); }
-        .panel-music .panel-heading { color: var(--glow-music); }
-
-        audio {
-            width: 100%;
-            margin-bottom: 4px;
-            filter: invert(0.92) hue-rotate(180deg);
-            outline: none;
-        }
-
-        .download-action-btn {
+        .premium-trigger-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 100%;
-            padding: 14px;
-            color: #fff;
-            text-decoration: none;
-            border-radius: 12px;
-            font-size: 13px;
+            background: linear-gradient(135deg, var(--glow-cyan), var(--glow-blue));
+            color: #040712;
+            padding: 20px 45px;
+            border-radius: 50px;
+            font-size: 18px;
             font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.75px;
-            transition: var(--transition-smooth);
-            margin-top: 12px;
-            box-sizing: border-box;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 8px 25px rgba(0, 242, 254, 0.3);
+            letter-spacing: 0.5px;
+            border: none;
+            outline: none;
         }
 
-        .panel-vocals .download-action-btn {
-            background: linear-gradient(135deg, #ff4757, #ff6b81);
-            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.2);
-        }
-        .panel-vocals .download-action-btn:hover {
-            box-shadow: 0 8px 22px rgba(255, 71, 87, 0.4);
-            transform: translateY(-1.5px);
+        .premium-trigger-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0, 242, 254, 0.5);
         }
 
-        .panel-music .download-action-btn {
-            background: linear-gradient(135deg, #2ed573, #7bed9f);
-            box-shadow: 0 5px 15px rgba(46, 213, 115, 0.2);
+        .premium-trigger-btn span {
+            margin-right: 12px;
+            font-size: 24px;
         }
-        .panel-music .download-action-btn:hover {
-            box-shadow: 0 8px 22px rgba(46, 213, 115, 0.4);
-            transform: translateY(-1.5px);
+
+        .formats-info-label {
+            margin-top: 25px;
+            font-size: 13px;
+            color: var(--text-muted);
+            display: block;
+            letter-spacing: 0.5px;
         }
 
         /* -------------------------------------------------------------------------- */
-        /* 8. TERMINATION BUTTON & APP UTILITIES                                      */
+        /* 6. PAGE 2: HIGH-SPEED IFRAME ENGINE TERMINAL                               */
         /* -------------------------------------------------------------------------- */
+        .iframe-container-panel {
+            width: 100%;
+            height: 520px;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(0, 0, 0, 0.2);
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
         .utility-footer {
-            margin-top: 30px;
+            margin-top: 25px;
             text-align: center;
         }
 
@@ -310,7 +174,7 @@
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: var(--text-secondary);
-            padding: 12px 28px;
+            padding: 10px 24px;
             border-radius: 30px;
             font-size: 13px;
             font-weight: 600;
@@ -325,10 +189,6 @@
             background: rgba(255, 255, 255, 0.03);
         }
     </style>
-    <script type="module">
-        import { client } from "https://cdn.jsdelivr.net/npm/@gradio/client@1.8.1/+esm";
-        window.GradioClientEngine = client;
-    </script>
 </head>
 <body>
 
@@ -340,38 +200,52 @@
         </div>
 
         <div id="view-page-upload" class="app-page active-page">
-            <label class="dropzone-box" id="interaction-zone">
-                <div class="dz-icon-container">
-                    <span>📤</span>
-                </div>
-                <h3 class="dz-prompt-text">Upload Audio Document</h3>
-                <p class="dz-sub-text">Drag & drop or browse device memory (MP3, WAV, FLAC, M4A)</p>
-                <input type="file" id="binary-audio-input" accept="audio/*">
-            </label>
-        </div>
-
-        <div id="view-page-loading" class="app-page">
-            <div class="loader-wrapper">
-                <div class="loader-status-msg" id="runtime-status-label">Uploading tracking data... ⏳</div>
-                <div class="bar-container"></div>
+            <div class="upload-section-box">
+                <button class="premium-trigger-btn" id="initiate-splitter-trigger">
+                    <span>📤</span> Upload Audio Document
+                </button>
+                <span class="formats-info-label">Supported Extensions: MP3, WAV, FLAC, M4A (Max 20MB)</span>
             </div>
         </div>
 
         <div id="view-page-results" class="app-page">
-            <div class="results-wrapper">
-                
-                <div class="audio-card-panel panel-original">
-                    <div class="panel-heading">
-                        <span>🎵</span> Original Audio Document
-                    </div>
-                    <div class="player-wrapper">
-                        <audio id="playback-node-original" controls controlsList="nodownload"></audio>
-                    </div>
-                </div>
+            <div class="iframe-container-panel">
+                <iframe src="https://asish-98-music-splitter.hf.space/?__theme=dark" allow="autoplay"></iframe>
+            </div>
 
-                <div class="audio-card-panel panel-vocals">
-                    <div class="panel-heading">
-                        <span>🎤</span> Pure Vocals (Isolated Voice)
-                    </div>
-                    <div class="player-wrapper">
-                        <audio id="playback-node
+            <div class="utility-footer">
+                <button class="action-reboot-btn" id="trigger-app-reset">Process Another Track</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const DOM_REGISTRY = {
+            uploadTrigger: document.getElementById('initiate-splitter-trigger'),
+            pageUpload: document.getElementById('view-page-upload'),
+            pageResults: document.getElementById('view-page-results'),
+            appResetBtn: document.getElementById('trigger-app-reset')
+        };
+
+        // Navigation core state coordinator
+        function executeScreenNavigation(targetScreenId) {
+            DOM_REGISTRY.pageUpload.classList.remove('active-page');
+            DOM_REGISTRY.pageResults.classList.remove('active-page');
+
+            if (targetScreenId === 'UPLOAD') DOM_REGISTRY.pageUpload.classList.add('active-page');
+            if (targetScreenId === 'RESULTS') DOM_REGISTRY.pageResults.classList.add('active-page');
+        }
+
+        // Trigger dynamic transition on user interaction
+        DOM_REGISTRY.uploadTrigger.addEventListener('click', function() {
+            executeScreenNavigation('RESULTS');
+        });
+
+        // Application reboot runtime handler
+        DOM_REGISTRY.appResetBtn.addEventListener('click', function() {
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>
