@@ -105,6 +105,11 @@
             transform: translateY(0);
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* -------------------------------------------------------------------------- */
         /* 5. PAGE 1: ADVANCED AUDIO DROP ZONE BOX                                    */
         /* -------------------------------------------------------------------------- */
@@ -325,10 +330,6 @@
             background: rgba(255, 255, 255, 0.03);
         }
     </style>
-    <script type="module">
-        import { client } from "https://cdn.jsdelivr.net/npm/@gradio/client@1.8.1/+esm";
-        window.GradioWebEngine = client;
-    </script>
 </head>
 <body>
 
@@ -399,8 +400,8 @@
     </div>
 
     <script type="module">
-        // Connection Token Address
-        const SPACE_REPOSITORY_ID = "Asish-98/music-splitter";
+        // Direct Absolute HTTP Connection Endpoint Address
+        const DIRECT_HF_URL = "https://asish-98-music-splitter.hf.space"; 
 
         const DOM_REGISTRY = {
             inputTrigger: document.getElementById('binary-audio-input'),
@@ -439,17 +440,38 @@
             DOM_REGISTRY.players.original.src = clientLocalBlobUrl;
 
             executeScreenNavigation('LOADING');
-            DOM_REGISTRY.statusText.innerText = "Connecting secure web proxy tunnel... 🚀⏳";
+            DOM_REGISTRY.statusText.innerText = "Uploading audio matrix to server... 🚀⏳";
 
             try {
-                // Secure WebSocket/Client Engine handshake via built-in bridge tool
-                const appEngineInstance = await window.GradioWebEngine.connect(SPACE_REPOSITORY_ID);
-                
-                DOM_REGISTRY.statusText.innerText = "Data tunnel active. Processing tracks via AI... 🎸⚡";
+                // 1. Absolute Temporary File Dispatching Tunnel
+                const transactionalFormData = new FormData();
+                transactionalFormData.append('files', selectedFileObj);
 
-                // Direct computational prediction parsing query mapping
-                const executionOutputJson = await appEngineInstance.predict(0, [selectedFileObj]);
+                const dataTransferResponse = await fetch(`${DIRECT_HF_URL}/upload`, {
+                    method: 'POST',
+                    body: transactionalFormData
+                });
 
+                if (!dataTransferResponse.ok) throw new Error("Upload process rejected.");
+                const uploadDataJson = await dataTransferResponse.json();
+                const absoluteRemoteTempPath = uploadDataJson[0];
+
+                DOM_REGISTRY.statusText.innerText = "AI Separation algorithm processing tracks (10-20s)... 🎸⚡";
+
+                // 2. Compute Direct Endpoint Mapping Execution
+                const predictionResponse = await fetch(`${DIRECT_HF_URL}/api/predict`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        data: [{ "path": absoluteRemoteTempPath, "meta": { "_type": "gradio.FileData" } }],
+                        fn_index: 0
+                    })
+                });
+
+                if (!predictionResponse.ok) throw new Error("AI Prediction failed.");
+                const executionOutputJson = await predictionResponse.json();
+
+                // 3. Output Addressing & Protocol Sync Mapping
                 const finalVocalsUrlAddress = executionOutputJson.data[0].url;
                 const finalMusicUrlAddress = executionOutputJson.data[1].url;
 
@@ -462,9 +484,9 @@
                 executeScreenNavigation('RESULTS');
 
             } catch (runtimeExceptionLogging) {
-                console.error("Internal Gateway Protocol Crash Checked:", runtimeExceptionLogging);
+                console.error("Internal API Handshake Fault Check:", runtimeExceptionLogging);
                 executeScreenNavigation('UPLOAD');
-                alert("❌ Timeout/Connection Blocked: Cloud Server declined connection. Ensure the Hugging Face Space backend status is set to 'Running'.");
+                alert("❌ Separation Timeout: The file took too long to separate. Ensure your Hugging Face Space has completed building and status is fully green 'Running'.");
             }
         });
 
