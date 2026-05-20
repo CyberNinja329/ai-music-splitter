@@ -105,11 +105,6 @@
             transform: translateY(0);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         /* -------------------------------------------------------------------------- */
         /* 5. PAGE 1: ADVANCED AUDIO DROP ZONE BOX                                    */
         /* -------------------------------------------------------------------------- */
@@ -432,6 +427,20 @@
             if (targetScreenId === 'RESULTS') DOM_REGISTRY.pageResults.classList.add('active-page');
         }
 
+        // Custom Fetch API wrapper with extended timeout limit (5 Minutes)
+        async function fetchWithLongTimeout(url, options, timeoutMs = 300000) {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                const response = await fetch(url, { ...options, signal: controller.signal });
+                clearTimeout(id);
+                return response;
+            } catch (error) {
+                clearTimeout(id);
+                throw error;
+            }
+        }
+
         DOM_REGISTRY.inputTrigger.addEventListener('change', async function(event) {
             const selectedFileObj = event.target.files[0];
             if (!selectedFileObj) return;
@@ -447,7 +456,7 @@
                 const transactionalFormData = new FormData();
                 transactionalFormData.append('files', selectedFileObj);
 
-                const dataTransferResponse = await fetch(`${DIRECT_HF_URL}/upload`, {
+                const dataTransferResponse = await fetchWithLongTimeout(`${DIRECT_HF_URL}/upload`, {
                     method: 'POST',
                     body: transactionalFormData
                 });
@@ -456,10 +465,10 @@
                 const uploadDataJson = await dataTransferResponse.json();
                 const absoluteRemoteTempPath = uploadDataJson[0];
 
-                DOM_REGISTRY.statusText.innerText = "AI Separation algorithm processing tracks (10-20s)... 🎸⚡";
+                DOM_REGISTRY.statusText.innerText = "AI Processing active... Demucs splitting layers (15-30s) 🎸⚡";
 
-                // 2. Compute Direct Endpoint Mapping Execution
-                const predictionResponse = await fetch(`${DIRECT_HF_URL}/api/predict`, {
+                // 2. Compute Direct Endpoint Mapping Execution with custom timeout bypass
+                const predictionResponse = await fetchWithLongTimeout(`${DIRECT_HF_URL}/api/predict`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -486,7 +495,7 @@
             } catch (runtimeExceptionLogging) {
                 console.error("Internal API Handshake Fault Check:", runtimeExceptionLogging);
                 executeScreenNavigation('UPLOAD');
-                alert("❌ Separation Timeout: The file took too long to separate. Ensure your Hugging Face Space has completed building and status is fully green 'Running'.");
+                alert("❌ Connection Drop / Timeout: Server took slightly too long to split. Please try uploading a smaller file (or shorter clip) or make sure your Hugging Face space hasn't fallen asleep.");
             }
         });
 
