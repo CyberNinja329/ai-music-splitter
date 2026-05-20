@@ -3,249 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Audio Splitter Ultra Pro v3.0</title>
+    <title>Local Audio Vocal Remover Pro</title>
     <style>
-        /* -------------------------------------------------------------------------- */
-        /* 1. CSS VARIABLES & THEME SETUP                                             */
-        /* -------------------------------------------------------------------------- */
         :root {
-            --bg-base: #060913;
-            --bg-canvas: linear-gradient(135deg, #05070f 0%, #0e1726 100%);
-            --panel-overlay: rgba(15, 23, 42, 0.65);
-            --panel-border: rgba(255, 255, 255, 0.07);
-            
-            --glow-cyan: #00f2fe;
-            --glow-blue: #4facfe;
-            --text-primary: #f8fafc;
-            --text-secondary: #cbd5e1;
-            --text-muted: #64748b;
-            
-            --font-stack: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            --transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        /* -------------------------------------------------------------------------- */
-        /* 2. GLOBAL RESET & BASE STYLES                                              */
-        /* -------------------------------------------------------------------------- */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
+            --bg-canvas: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            --panel-bg: rgba(30, 41, 59, 0.7);
+            --accent-cyan: #06b6d4;
+            --accent-pink: #ec4899;
+            --text-main: #f8fafc;
         }
 
         body {
-            font-family: var(--font-stack);
+            font-family: 'Segoe UI', system-ui, sans-serif;
             background: var(--bg-canvas);
-            color: var(--text-primary);
+            color: var(--text-main);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
-            overflow-x: hidden;
+            margin: 0;
         }
 
-        /* -------------------------------------------------------------------------- */
-        /* 3. CORE CONTAINER LAYOUT                                                   */
-        /* -------------------------------------------------------------------------- */
-        .app-mainframe {
-            background: var(--panel-overlay);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            width: 100%;
-            max-width: 750px;
-            border-radius: 32px;
-            border: 1px solid var(--panel-border);
-            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7),
-                        0 0 60px rgba(0, 242, 254, 0.02);
+        .container {
+            background: var(--panel-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 40px;
-            position: relative;
-            transition: var(--transition-smooth);
-        }
-
-        .app-header {
-            margin-bottom: 35px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 550px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             text-align: center;
         }
 
-        .app-title {
-            font-size: 34px;
-            font-weight: 900;
-            letter-spacing: -0.75px;
-            background: linear-gradient(to right, var(--glow-cyan), var(--glow-blue));
+        h1 {
+            font-size: 28px;
+            background: linear-gradient(to right, var(--accent-cyan), var(--accent-pink));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
         }
 
-        .app-desc {
-            color: var(--text-secondary);
+        p {
+            color: #94a3b8;
             font-size: 14px;
-            font-weight: 400;
-            letter-spacing: 0.25px;
+            margin-bottom: 30px;
         }
 
-        /* -------------------------------------------------------------------------- */
-        /* 4. MULTI-PAGE CONTROLLER SYSTEM                                            */
-        /* -------------------------------------------------------------------------- */
-        .app-page {
-            display: none;
-            opacity: 0;
-            transform: translateY(15px);
-            transition: var(--transition-smooth);
-        }
-
-        .app-page.active-page {
-            display: block;
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        /* -------------------------------------------------------------------------- */
-        /* 5. PAGE 1: DYNAMIC PREMIUM UPLOAD TRIGGER BUTTON                          */
-        /* -------------------------------------------------------------------------- */
-        .upload-section-box {
-            padding: 40px 10px;
-            text-align: center;
-        }
-
-        .premium-trigger-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--glow-cyan), var(--glow-blue));
-            color: #040712;
-            padding: 20px 45px;
+        .upload-btn {
+            background: linear-gradient(135deg, var(--accent-cyan), #3b82f6);
+            color: white;
+            padding: 14px 30px;
             border-radius: 50px;
-            font-size: 18px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 8px 25px rgba(0, 242, 254, 0.3);
-            letter-spacing: 0.5px;
             border: none;
-            outline: none;
-        }
-
-        .premium-trigger-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(0, 242, 254, 0.5);
-        }
-
-        .premium-trigger-btn span {
-            margin-right: 12px;
-            font-size: 24px;
-        }
-
-        .formats-info-label {
-            margin-top: 25px;
-            font-size: 13px;
-            color: var(--text-muted);
-            display: block;
-            letter-spacing: 0.5px;
-        }
-
-        /* -------------------------------------------------------------------------- */
-        /* 6. PAGE 2: HIGH-SPEED IFRAME ENGINE TERMINAL                               */
-        /* -------------------------------------------------------------------------- */
-        .iframe-container-panel {
-            width: 100%;
-            height: 520px;
-            border-radius: 20px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(0, 0, 0, 0.2);
-            box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
-        }
-
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        .utility-footer {
-            margin-top: 25px;
-            text-align: center;
-        }
-
-        .action-reboot-btn {
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: var(--text-secondary);
-            padding: 10px 24px;
-            border-radius: 30px;
-            font-size: 13px;
+            font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: var(--transition-smooth);
-            letter-spacing: 0.5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
         }
 
-        .action-reboot-btn:hover {
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.4);
-            background: rgba(255, 255, 255, 0.03);
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #e2e8f0;
+            display: none;
+        }
+
+        .player-section {
+            margin-top: 30px;
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            text-align: left;
+        }
+
+        .track-card {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .track-title {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-cyan);
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        audio {
+            width: 100%;
+            filter: invert(0.9) hue-rotate(180deg);
         }
     </style>
 </head>
 <body>
 
-    <div class="app-mainframe">
-        
-        <div class="app-header">
-            <h1 class="app-title">AI Music Splitter</h1>
-            <p class="app-desc">Extract high-fidelity vocals and instrumentals tracks securely</p>
-        </div>
+    <div class="container">
+        <h1>Vocal Remover Lite</h1>
+        <p>Instant browser-level processing without cloud servers or timeouts</p>
 
-        <div id="view-page-upload" class="app-page active-page">
-            <div class="upload-section-box">
-                <button class="premium-trigger-btn" id="initiate-splitter-trigger">
-                    <span>📤</span> Upload Audio Document
-                </button>
-                <span class="formats-info-label">Supported Extensions: MP3, WAV, FLAC, M4A (Max 20MB)</span>
+        <label class="upload-btn">
+            📁 Select Audio File
+            <input type="file" id="audio-file" accept="audio/*">
+        </label>
+
+        <div class="status" id="status-msg">Processing audio matrix locally... ⚡</div>
+
+        <div class="player-section" id="player-panel">
+            <div class="track-card">
+                <div class="track-title" style="color: #3b82f6;">🎵 Original Track</div>
+                <audio id="audio-original" controls></audio>
+            </div>
+            
+            <div class="track-card">
+                <div class="track-title" style="color: var(--accent-pink);">🥁 Instrumental / Karaoke (Vocals Removed)</div>
+                <audio id="audio-processed" controls></audio>
             </div>
         </div>
-
-        <div id="view-page-results" class="app-page">
-            <div class="iframe-container-panel">
-                <iframe src="https://asish-98-music-splitter.hf.space/?__theme=dark" allow="autoplay"></iframe>
-            </div>
-
-            <div class="utility-footer">
-                <button class="action-reboot-btn" id="trigger-app-reset">Process Another Track</button>
-            </div>
-        </div>
-
     </div>
 
     <script>
-        const DOM_REGISTRY = {
-            uploadTrigger: document.getElementById('initiate-splitter-trigger'),
-            pageUpload: document.getElementById('view-page-upload'),
-            pageResults: document.getElementById('view-page-results'),
-            appResetBtn: document.getElementById('trigger-app-reset')
-        };
+        const fileInput = document.getElementById('audio-file');
+        const statusMsg = document.getElementById('status-msg');
+        const playerPanel = document.getElementById('player-panel');
+        const audioOriginal = document.getElementById('audio-original');
+        const audioProcessed = document.getElementById('audio-processed');
 
-        // Navigation core state coordinator
-        function executeScreenNavigation(targetScreenId) {
-            DOM_REGISTRY.pageUpload.classList.remove('active-page');
-            DOM_REGISTRY.pageResults.classList.remove('active-page');
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
 
-            if (targetScreenId === 'UPLOAD') DOM_REGISTRY.pageUpload.classList.add('active-page');
-            if (targetScreenId === 'RESULTS') DOM_REGISTRY.pageResults.classList.add('active-page');
+            // Show original track immediately
+            audioOriginal.src = URL.createObjectURL(file);
+            
+            statusMsg.style.display = 'block';
+            playerPanel.style.display = 'none';
+
+            try {
+                // Initialize Web Audio API Context
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const audioCtx = new AudioContext();
+                
+                // Read file as ArrayBuffer
+                const arrayBuffer = await file.arrayBuffer();
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+
+                const numChannels = audioBuffer.numberOfChannels;
+                const sampleRate = audioBuffer.sampleRate;
+                const length = audioBuffer.length;
+
+                // Create an empty output buffer for processed audio
+                const outputBuffer = audioCtx.createBuffer(numChannels, length, sampleRate);
+
+                if (numChannels >= 2) {
+                    // Center Channel Subtraction Algorithm (Phase Inversion)
+                    const leftChannel = audioBuffer.getChannelData(0);
+                    const rightChannel = audioBuffer.getChannelData(1);
+                    
+                    const outLeft = outputBuffer.getChannelData(0);
+                    const outRight = outputBuffer.getChannelData(1);
+
+                    for (let i = 0; i < length; i++) {
+                        // Subtracting channels removes centered mono signals (typically vocals)
+                        const instrumentalNode = leftChannel[i] - rightChannel[i];
+                        outLeft[i] = instrumentalNode;
+                        outRight[i] = instrumentalNode;
+                    }
+                } else {
+                    // Fallback for Mono tracks (Phase inversion needs stereo)
+                    statusMsg.innerText = "⚠️ Mono file detected. Phase inversion requires a stereo track.";
+                    statusMsg.style.color = "#ef4444";
+                    return;
+                }
+
+                // Convert AudioBuffer to playable WAV Blob
+                const wavBlob = bufferToWav(outputBuffer);
+                audioProcessed.src = URL.createObjectURL(wavBlob);
+
+                statusMsg.style.display = 'none';
+                playerPanel.style.display = 'flex';
+
+            } catch (err) {
+                console.error(err);
+                statusMsg.innerText = "❌ Processing failed. Try another format.";
+                statusMsg.style.color = "#ef4444";
+            }
+        });
+
+        // Utility Function: AudioBuffer to standard WAV file format conversion
+        function bufferToWav(buffer) {
+            let numOfChan = buffer.numberOfChannels,
+                length = buffer.length * numOfChan * 2 + 44,
+                bufferArr = new ArrayBuffer(length),
+                view = new DataView(bufferArr),
+                channels = [], i, sample,
+                offset = 0,
+                pos = 0;
+
+            function setUint16(data) { view.setUint16(pos, data, true); pos += 2; }
+            function setUint32(data) { view.setUint32(pos, data, true); pos += 4; }
+
+            setUint32(0x46464952); // "RIFF"
+            setUint32(length - 8); // file length - 8
+            setUint32(0x45564157); // "WAVE"
+            setUint32(0x20746d66); // "fmt " chunk
+            setUint32(16);         // chunk length
+            setUint16(1);          // sample format (raw PCM)
+            setUint16(numOfChan);
+            setUint32(buffer.sampleRate);
+            setUint32(buffer.sampleRate * 2 * numOfChan); // byte rate
+            setUint16(numOfChan * 2);                     // block align
+            setUint16(16);                                // bits per sample
+            setUint32(0x61746164); // "data" chunk
+            setUint32(length - pos - 4);
+
+            for (i = 0; i < buffer.numberOfChannels; i++) channels.push(buffer.getChannelData(i));
+
+            while (pos < length) {
+                for (i = 0; i < numOfChan; i++) {
+                    sample = Math.max(-1, Math.min(1, channels[i][offset]));
+                    sample = (sample < 0 ? sample * 0x8000 : sample * 0x7FFF) | 0;
+                    view.setInt16(pos, sample, true);
+                    pos += 2;
+                }
+                offset++;
+            }
+            return new Blob([view], { type: 'audio/wav' });
         }
-
-        // Trigger dynamic transition on user interaction
-        DOM_REGISTRY.uploadTrigger.addEventListener('click', function() {
-            executeScreenNavigation('RESULTS');
-        });
-
-        // Application reboot runtime handler
-        DOM_REGISTRY.appResetBtn.addEventListener('click', function() {
-            window.location.reload();
-        });
     </script>
 </body>
 </html>
