@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Audio Splitter Ultra Pro v2.0</title>
+    <style>
+        /* -------------------------------------------------------------------------- */
+        /* 1. CSS VARIABLES & THEME SETUP                                             */
+        /* -------------------------------------------------------------------------- */
+        :root {
+            --bg-base: #060913;
+            --bg-canvas: linear-gradient(135deg, #05070f 0%, #0e1726 100%);
+            --panel-overlay: rgba(15, 23, 42, 0.65);
+            --panel-border: rgba(255, 255, 255, 0.07);
+            
+            --glow-cyan: #00f2fe;
+            --glow-blue: #4facfe;
+            --glow-vocals: #ff4757;
+            --glow-music: #2ed573;
+            
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            
+            --font-stack: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --transition-smooth: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 2. GLOBAL RESET & BASE STYLES                                              */
+        /* -------------------------------------------------------------------------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: var(--font-stack);
+            background: var(--bg-canvas);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+            overflow-x: hidden;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 3. CORE CONTAINER LAYOUT                                                   */
+        /* -------------------------------------------------------------------------- */
+        .app-mainframe {
+            background: var(--panel-overlay);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            width: 100%;
+            max-width: 650px;
+            border-radius: 32px;
+            border: 1px solid var(--panel-border);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.7),
+                        0 0 60px rgba(0, 242, 254, 0.02);
+            padding: 50px 40px;
+            position: relative;
+            transition: var(--transition-smooth);
+        }
+
+        .app-header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .app-title {
+            font-size: 36px;
+            font-weight: 900;
+            letter-spacing: -0.75px;
+            background: linear-gradient(to right, var(--glow-cyan), var(--glow-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+        }
+
+        .app-desc {
+            color: var(--text-secondary);
+            font-size: 15px;
+            font-weight: 400;
+            letter-spacing: 0.25px;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 4. MULTI-PAGE CONTROLLER SYSTEM                                            */
+        /* -------------------------------------------------------------------------- */
+        .app-page {
+            display: none;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: var(--transition-smooth);
+        }
+
+        .app-page.active-page {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 5. PAGE 1: ADVANCED AUDIO DROP ZONE BOX                                    */
+        /* -------------------------------------------------------------------------- */
+        .dropzone-box {
+            border: 2px dashed rgba(0, 242, 254, 0.25);
+            background: rgba(0, 242, 254, 0.01);
+            border-radius: 24px;
+            padding: 60px 30px;
+            cursor: pointer;
+            position: relative;
+            transition: var(--transition-smooth);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dropzone-box:hover {
+            border-color: var(--glow-cyan);
+            background: rgba(0, 242, 254, 0.04);
+            box-shadow: 0 0 30px rgba(0, 242, 254, 0.12);
+            transform: scale(1.01);
+        }
+
+        .dz-icon-container {
+            width: 90px;
+            height: 90px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 25px;
+            font-size: 38px;
+            transition: var(--transition-smooth);
+            animation: bounceFloat 4s infinite ease-in-out;
+        }
+
+        @keyframes bounceFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .dropzone-box:hover .dz-icon-container {
+            background: rgba(0, 242, 254, 0.1);
+            border-color: var(--glow-cyan);
+            color: var(--glow-cyan);
+        }
+
+        .dz-prompt-text {
+            font-size: 19px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        .dz-sub-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 6. SYSTEM RUNNING LOADER STATE                                             */
+        /* -------------------------------------------------------------------------- */
+        .loader-wrapper {
+            padding: 40px 10px;
+            text-align: center;
+        }
+
+        .loader-status-msg {
+            font-size: 16px;
+            font-weight: 600;
+            color: #f1c40f;
+            margin-bottom: 25px;
+            letter-spacing: 0.5px;
+        }
+
+        .bar-container {
+            height: 6px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-container::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 45%;
+            background: linear-gradient(to right, transparent, var(--glow-cyan), transparent);
+            animation: lineDrive 1.6s infinite linear;
+        }
+
+        @keyframes lineDrive {
+            0% { left: -45%; }
+            100% { left: 100%; }
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 7. PAGE 2: TRIPLE TRACK CHANNELS VIEW                                      */
+        /* -------------------------------------------------------------------------- */
+        .results-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .audio-card-panel {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+            transition: var(--transition-smooth);
+        }
+
+        .audio-card-panel:hover {
+            border-color: rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .panel-heading {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 16px;
+        }
+
+        .panel-heading span {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        .panel-original .panel-heading { color: var(--glow-blue); }
+        .panel-vocals .panel-heading { color: var(--glow-vocals); }
+        .panel-music .panel-heading { color: var(--glow-music); }
+
+        audio {
+            width: 100%;
+            margin-bottom: 4px;
+            filter: invert(0.92) hue-rotate(180deg);
+            outline: none;
+        }
+
+        .download-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 14px;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.75px;
+            transition: var(--transition-smooth);
+            margin-top: 12px;
+            box-sizing: border-box;
+        }
+
+        .panel-vocals .download-action-btn {
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.2);
+        }
+        .panel-vocals .download-action-btn:hover {
+            box-shadow: 0 8px 22px rgba(255, 71, 87, 0.4);
+            transform: translateY(-1.5px);
+        }
+
+        .panel-music .download-action-btn {
+            background: linear-gradient(135deg, #2ed573, #7bed9f);
+            box-shadow: 0 5px 15px rgba(46, 213, 115, 0.2);
+        }
+        .panel-music .download-action-btn:hover {
+            box-shadow: 0 8px 22px rgba(46, 213, 115, 0.4);
+            transform: translateY(-1.5px);
+        }
+
+        /* -------------------------------------------------------------------------- */
+        /* 8. TERMINATION BUTTON & APP UTILITIES                                      */
+        /* -------------------------------------------------------------------------- */
+        .utility-footer {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .action-reboot-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-secondary);
+            padding: 12px 28px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            letter-spacing: 0.5px;
+        }
+
+        .action-reboot-btn:hover {
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.03);
+        }
+    </style>
+    <script type="module">
+        import { client } from "https://cdn.jsdelivr.net/npm/@gradio/client@1.8.1/+esm";
+        window.GradioWebEngine = client;
+    </script>
+</head>
+<body>
+
+    <div class="app-mainframe">
+        
+        <div class="app-header">
+            <h1 class="app-title">AI Music Splitter</h1>
+            <p class="app-desc">Extract high-fidelity vocals and instrumentals tracks securely</p>
+        </div>
+
+        <div id="view-page-upload" class="app-page active-page">
+            <label class="dropzone-box" id="interaction-zone">
+                <div class="dz-icon-container">
+                    <span>📤</span>
+                </div>
+                <h3 class="dz-prompt-text">Upload Audio Document</h3>
+                <p class="dz-sub-text">Drag & drop or browse device memory (MP3, WAV, FLAC, M4A)</p>
+                <input type="file" id="binary-audio-input" accept="audio/*">
+            </label>
+        </div>
+
+        <div id="view-page-loading" class="app-page">
+            <div class="loader-wrapper">
+                <div class="loader-status-msg" id="runtime-status-label">Uploading tracking data... ⏳</div>
+                <div class="bar-container"></div>
+            </div>
+        </div>
+
+        <div id="view-page-results" class="app-page">
+            <div class="results-wrapper">
+                
+                <div class="audio-card-panel panel-original">
+                    <div class="panel-heading">
+                        <span>🎵</span> Original Audio Document
+                    </div>
+                    <div class="player-wrapper">
+                        <audio id="playback-node-original" controls controlsList="nodownload"></audio>
+                    </div>
+                </div>
+
+                <div class="audio-card-panel panel-vocals">
+                    <div class="panel-heading">
+                        <span>🎤</span> Pure Vocals (Isolated Voice)
+                    </div>
+                    <div class="player-wrapper">
+                        <audio id="playback-node-vocals" controls></audio>
+                    </div>
+                    <a id="action-download-vocals" class="download-action-btn" download="isolated_vocals.wav" target="_blank">Download Vocals File</a>
+                </div>
+
+                <div class="audio-card-panel panel-music">
+                    <div class="panel-heading">
+                        <span>🥁</span> Instrumental & Beats (No Vocals)
+                    </div>
+                    <div class="player-wrapper">
+                        <audio id="playback-node-music" controls></audio>
+                    </div>
+                    <a id="action-download-music" class="download-action-btn" download="isolated_instrumental.wav" target="_blank">Download Instrumental File</a>
+                </div>
+
+            </div>
+
+            <div class="utility-footer">
+                <button class="action-reboot-btn" id="trigger-app-reset">Process Another Track</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        // Connection Token Address
+        const SPACE_REPOSITORY_ID = "Asish-98/music-splitter";
+
+        const DOM_REGISTRY = {
+            inputTrigger: document.getElementById('binary-audio-input'),
+            pageUpload: document.getElementById('view-page-upload'),
+            pageLoading: document.getElementById('view-page-loading'),
+            pageResults: document.getElementById('view-page-results'),
+            statusText: document.getElementById('runtime-status-label'),
+            dropRegion: document.getElementById('interaction-zone'),
+            appResetBtn: document.getElementById('trigger-app-reset'),
+            players: {
+                original: document.getElementById('playback-node-original'),
+                vocals: document.getElementById('playback-node-vocals'),
+                music: document.getElementById('playback-node-music')
+            },
+            links: {
+                vocals: document.getElementById('action-download-vocals'),
+                music: document.getElementById('action-download-music')
+            }
+        };
+
+        function executeScreenNavigation(targetScreenId) {
+            DOM_REGISTRY.pageUpload.classList.remove('active-page');
+            DOM_REGISTRY.pageLoading.classList.remove('active-page');
+            DOM_REGISTRY.pageResults.classList.remove('active-page');
+
+            if (targetScreenId === 'UPLOAD') DOM_REGISTRY.pageUpload.classList.add('active-page');
+            if (targetScreenId === 'LOADING') DOM_REGISTRY.pageLoading.classList.add('active-page');
+            if (targetScreenId === 'RESULTS') DOM_REGISTRY.pageResults.classList.add('active-page');
+        }
+
+        DOM_REGISTRY.inputTrigger.addEventListener('change', async function(event) {
+            const selectedFileObj = event.target.files[0];
+            if (!selectedFileObj) return;
+
+            const clientLocalBlobUrl = URL.createObjectURL(selectedFileObj);
+            DOM_REGISTRY.players.original.src = clientLocalBlobUrl;
+
+            executeScreenNavigation('LOADING');
+            DOM_REGISTRY.statusText.innerText = "Connecting secure web proxy tunnel... 🚀⏳";
+
+            try {
+                // Secure WebSocket/Client Engine handshake via built-in bridge tool
+                const appEngineInstance = await window.GradioWebEngine.connect(SPACE_REPOSITORY_ID);
+                
+                DOM_REGISTRY.statusText.innerText = "Data tunnel active. Processing tracks via AI... 🎸⚡";
+
+                // Direct computational prediction parsing query mapping
+                const executionOutputJson = await appEngineInstance.predict(0, [selectedFileObj]);
+
+                const finalVocalsUrlAddress = executionOutputJson.data[0].url;
+                const finalMusicUrlAddress = executionOutputJson.data[1].url;
+
+                DOM_REGISTRY.players.vocals.src = finalVocalsUrlAddress;
+                DOM_REGISTRY.links.vocals.href = finalVocalsUrlAddress;
+
+                DOM_REGISTRY.players.music.src = finalMusicUrlAddress;
+                DOM_REGISTRY.links.music.href = finalMusicUrlAddress;
+
+                executeScreenNavigation('RESULTS');
+
+            } catch (runtimeExceptionLogging) {
+                console.error("Internal Gateway Protocol Crash Checked:", runtimeExceptionLogging);
+                executeScreenNavigation('UPLOAD');
+                alert("❌ Timeout/Connection Blocked: Cloud Server declined connection. Ensure the Hugging Face Space backend status is set to 'Running'.");
+            }
+        });
+
+        DOM_REGISTRY.appResetBtn.addEventListener('click', () => window.location.reload());
+
+        ['dragenter', 'dragover'].forEach(evt => {
+            DOM_REGISTRY.dropRegion.addEventListener(evt, (e) => { e.preventDefault(); DOM_REGISTRY.dropRegion.style.borderColor = "var(--accent-cyan)"; }, false);
+        });
+        ['dragleave', 'drop'].forEach(evt => {
+            DOM_REGISTRY.dropRegion.addEventListener(evt, (e) => { e.preventDefault(); DOM_REGISTRY.dropRegion.style.borderColor = "rgba(0, 242, 254, 0.25)"; }, false);
+        });
+        DOM_REGISTRY.dropRegion.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if(files.length) {
+                DOM_REGISTRY.inputTrigger.files = files;
+                DOM_REGISTRY.inputTrigger.dispatchEvent(new Event('change'));
+            }
+        });
+    </script>
+</body>
+</html>
